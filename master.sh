@@ -74,16 +74,28 @@ sudo systemctl enable kubelet
 suo systemctl start kubelet
 sudo kubeadm config images pull
 
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --upload-certs --control-plane-endpoint=172.173.184.230
+echo "Kubeadm Intialzing Advertising the Public IP on This Master Node"
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --upload-certs --control-plane-endpoint=$YOUR_IP
 
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
+echo "Creating Folders and giveing permissions to run Kubectl Commands"
+sudo mkdir -p $HOME/.kube
+sudo cp /etc/kubernetes/admin.conf $HOME/
+sudo chown $(id -u):$(id -g) $HOME/admin.conf
+export KUBECONFIG=$HOME/admin.conf
 
-kubectl cluster-info
+#Fix the Error – The connection to the server localhost:8080 was refused
+#export KUBECONFIG=/etc/kubernetes/admin.conf
 
-kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
-kubectl create -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel-rbac.yml
+echo "Bootstrapping Kubectl Commands"
+echo 'export KUBECONFIG=$HOME/admin.conf' >> $HOME/.bashrc
+
+echo "Checking Status of Nodes"
+kubectl get nodes
+
+echo "Installing Flannel Cli"
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+echo "Checking if Flannel and Core DNS is Installed"
+kubectl get pods -n kube-system
 
 
 
