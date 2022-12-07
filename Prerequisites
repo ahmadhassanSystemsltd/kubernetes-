@@ -1,0 +1,11 @@
+#The minimal server requirements for the servers used in the cluster are:
+#2 GiB or more of RAM per machine–any less leaves little room for your apps.
+#At least 2 CPUs on the machine that you use as a control-plane node.
+#Full network connectivity among all machines in the cluster – Can be private or public
+
+#Before implementing
+#add 
+#sudo vim /etc/hosts
+#ip + master
+
+#Inbound ports 
