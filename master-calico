@@ -84,3 +84,5 @@ echo "Installing Calico Network"
 kubectl create -f https://docs.projectcalico.org/manifests/tigera-operator.yaml 
 kubectl create -f https://docs.projectcalico.org/manifests/custom-resources.yaml
 
+echo "Checking Status of Nodes After Applying Calico Network"
+sudo kubectl get nodes
