@@ -1,25 +1,4 @@
 #!/bin/bash
-sudo yum -y update
-sudo tee /etc/yum.repos.d/kubernetes.repo<<EOF
-[kubernetes]
-name=Kubernetes
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-EOF
-sudo yum clean all && sudo yum -y makecache
-sudo yum -y install epel-release vim git curl wget kubelet kubeadm kubectl --disableexcludes=kubernetes
-kubeadm  version
-
-echo "Disable SELinux and Swap"
-sudo setenforce 0
-sudo sed -i 's/^SELINUX=.*/SELINUX=permissive/g' /etc/selinux/config
-echo "Turn off swap"
-sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-sudo swapoff -a
-
 echo "configure sysctl"
 sudo modprobe overlay
 sudo modprobe br_netfilter
@@ -32,41 +11,38 @@ EOF
 
 sudo sysctl --system
 
-
-# Configure persistent loading of modules
+echo "Configure persistent loading of modules"
 sudo tee /etc/modules-load.d/containerd.conf <<EOF
 overlay
 br_netfilter
 EOF
 
-# Load at runtime
+echo "Load at runtime"
 sudo modprobe overlay
 sudo modprobe br_netfilter
 
-# Ensure sysctl params are set
+echo "Ensure sysctl params are set"
 sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 EOF
 
-# Reload configs
+echo "Reload configs"
 sudo sysctl --system
 
-# Install required packages
+echo "Install required packages"
 sudo yum install -y yum-utils device-mapper-persistent-data lvm2
 
-# Add Docker repo
+echo "Add Docker repo"
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
-# Install containerd
+echo "Install containerd"
 sudo yum update -y && yum install -y containerd.io
 
-# Configure containerd and start service
+echo "Configure containerd and start service"
 sudo mkdir -p /etc/containerd
 sudo containerd config default > /etc/containerd/config.toml
-
-# restart containerd
 sudo systemctl restart containerd
 sudo systemctl enable containerd
 
@@ -75,6 +51,21 @@ lsmod | grep br_netfilter
 sudo systemctl enable kubelet
 sudo kubeadm config images pull
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --upload-certs --control-plane-endpoint=$YOUR_IP
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+echo "Checking Status of Nodes"
+kubectl get nodes
+
+echo "Installing Flannel Cli"
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+echo "Checking if Flannel and Core DNS is Installed"
+kubectl get pods -n kube-system
+
+echo "Checking Status of Nodes After CNI "
+sudo kubectl get nodes
 
 
 
