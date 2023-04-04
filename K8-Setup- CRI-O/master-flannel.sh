@@ -1,20 +1,5 @@
 #!/bin/bash
 
-echo "Configuring Systemctl ModProbe Overlay and Netfilter"
-sudo modprobe overlay
-sudo modprobe br_netfilter
-echo "Enabling IP forwarding so that our pods can communicate with each other"
-sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-net.ipv4.ip_forward = 1
-EOF
-sudo sysctl --system
-
-echo "Ensure you load modules"
-sudo modprobe overlay
-sudo modprobe br_netfilter
-
 echo "Set up required sysctl params"
 sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
@@ -42,6 +27,11 @@ sudo sed -i 's/10.85.0.0/192.168.0.0/g' /etc/cni/net.d/100-crio-bridge.conflist
 sudo systemctl daemon-reload
 sudo systemctl start crio
 sudo systemctl enable crio
+
+echo "ports to be enabled Master Server" 
+sudo firewall-cmd --add-port={6443,2379-2380,10250,10251,10252,5473,179,5473}/tcp --permanent
+sudo firewall-cmd --add-port={4789,8285,8472}/udp --permanent
+sudo firewall-cmd --reload
 
 echo "Disabling Firewall if enabled"
 sudo systemctl disable --now firewalld
