@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Updating Yum...."
-sudo yum -y update
+sudo yum update
 
 echo "Installing Kubelet, Kubeadm and Kubectl......"
 cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
@@ -29,3 +29,15 @@ sudo sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
 
 sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 sudo swapoff -a
+
+echo "Configure sysctl"
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+sudo sysctl --system
