@@ -53,7 +53,7 @@ sudo chown $(id -u):$(id -g) $HOME/admin.conf
 export KUBECONFIG=$HOME/admin.conf
 
 #Fix the Error – The connection to the server localhost:8080 was refused
-#export KUBECONFIG=/etc/kubernetes/admin.conf
+export KUBECONFIG=/etc/kubernetes/admin.conf
 
 echo "Bootstrapping Kubectl Commands"
 echo 'export KUBECONFIG=$HOME/admin.conf' >> $HOME/.bashrc
