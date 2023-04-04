@@ -15,8 +15,8 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-#sudo yum -y install epel-release vim git curl wget kubelet kubeadm kubectl --disableexcludes=kubernetes
-sudo yum -y install epel-release vim git curl wget kubelet-1.23.2 kubeadm-1.23.2-0 kubectl-1.23.2 --disableexcludes=kubernetes
+sudo yum -y install epel-release vim git curl wget kubelet kubeadm kubectl --disableexcludes=kubernetes
+#sudo yum -y install epel-release vim git curl wget kubelet-1.23.2 kubeadm-1.23.2-0 kubectl-1.23.2 --disableexcludes=kubernetes
 
 echo "Your Kubeadm version is......"
 sudo kubeadm version
@@ -38,33 +38,20 @@ net.ipv4.ip_forward = 1
 EOF
 sudo sysctl --system
 
-echo "Installing Docker..."
+echo "Install required packages"
 sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+
+echo "Add Docker repo"
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-sudo yum install -y docker-ce docker-ce-cli containerd.io
-sudo mkdir /etc/docker
-sudo mkdir -p /etc/systemd/system/docker.service.d
 
-sudo tee /etc/docker/daemon.json <<EOF
-{
-"exec-opts": ["native.cgroupdriver=systemd"],
-"log-driver": "json-file",
-"log-opts": {
-"max-size": "100m"
-},
-"storage-driver": "overlay2",
-"storage-opts": [
-"overlay2.override_kernel_check=true"
-]
-}
-EOF
+echo "Install containerd"
+sudo yum update -y && yum install -y containerd.io
 
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-sudo systemctl enable docker
-
-echo "Your Docker Version is :"
-sudo docker --version
+echo "Configure containerd and start service"
+sudo mkdir -p /etc/containerd
+sudo containerd config default > /etc/containerd/config.toml
+sudo systemctl restart containerd
+sudo systemctl enable containerd
 
 echo "Disabling Firewall if enabled"
 sudo systemctl disable --now firewalld
