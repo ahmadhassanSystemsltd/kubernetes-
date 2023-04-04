@@ -6,6 +6,6 @@
 #Before implementing
 #add 
 #sudo vim /etc/hosts
-#ip + master
+#ip + machine name
 
-#Inbound ports 
+#Inbound ports w.r.t worker and master
