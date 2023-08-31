@@ -38,7 +38,7 @@ echo "Add Docker repo"
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
 echo "Install containerd"
-sudo yum update -y && yum install -y containerd.io
+sudo yum install -y containerd.io
 
 echo "Configure containerd and start service"
 sudo mkdir -p /etc/containerd
